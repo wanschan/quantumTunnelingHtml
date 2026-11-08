@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0c">
+<title>量子隧穿 · 资料库</title>
+<style>
+  /* ---------- tokens : monochrome UI, color content ---------- */
+  :root{
+    --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+            "HarmonyOS Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+    --radius-lg: 20px;
+    --ease: cubic-bezier(.22,.68,0,1);
+  }
+  html[data-theme="dark"]{
+    --page-bg:#050506;
+    --screen-bg:#0b0b0c;
+    --surface:rgba(255,255,255,.045);
+    --surface-hover:rgba(255,255,255,.08);
+    --stroke:rgba(255,255,255,.09);
+    --stroke-strong:rgba(255,255,255,.18);
+    --text:#f4f4f5;
+    --text-2:#a1a1aa;
+    --text-3:#6a6a72;
+    --btn-bg:#fafafa;
+    --btn-fg:#0a0a0a;
+    --scrim:rgba(11,11,12,.82);
+  }
+  html[data-theme="light"]{
+    --page-bg:#ececec;
+    --screen-bg:#ffffff;
+    --surface:rgba(9,9,11,.045);
+    --surface-hover:rgba(9,9,11,.075);
+    --stroke:rgba(9,9,11,.095);
+    --stroke-strong:rgba(9,9,11,.20);
+    --text:#0a0a0b;
+    --text-2:#55555d;
+    --text-3:#8c8c94;
+    --btn-bg:#111113;
+    --btn-fg:#fafafa;
+    --scrim:rgba(255,255,255,.86);
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  html,body{ height:100%; }
+  html{ overflow-y:scroll; scrollbar-gutter:stable; }
+  body{
+    margin:0; font-family:var(--font); color:var(--text); background:var(--page-bg);
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    transition:background .45s var(--ease), color .45s var(--ease);
+  }
+
+  /* ---------- app shell ---------- */
+  .app{
+    position:relative; width:100%; max-width:520px; min-height:100vh; min-height:100dvh;
+    margin:0 auto; background:var(--screen-bg);
+    border-left:1px solid var(--stroke); border-right:1px solid var(--stroke);
+    display:flex; flex-direction:column;
+    transition:background .45s var(--ease), border-color .45s var(--ease);
+  }
+
+  /* ---------- app bar ---------- */
+  .appbar{
+    position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:12px;
+    padding:calc(14px + env(safe-area-inset-top)) 18px 14px;
+    background:var(--scrim); backdrop-filter:blur(18px) saturate(150%);
+    -webkit-backdrop-filter:blur(18px) saturate(150%);
+    border-bottom:1px solid var(--stroke);
+  }
+  .brand{
+    width:40px; height:40px; border-radius:12px; display:grid; place-items:center; flex:0 0 auto;
+    background:var(--btn-bg); border:1px solid var(--stroke);
+  }
+  .brand svg{ width:21px; height:21px; stroke:var(--btn-fg); }
+  .appbar-title{ flex:1; min-width:0; }
+  .appbar-title h1{ margin:0; font-size:16.5px; font-weight:700; letter-spacing:.2px; }
+  .appbar-title p{ margin:2px 0 0; font-size:11.5px; color:var(--text-3); letter-spacing:.3px; }
+  .icon-btn{
+    width:38px; height:38px; flex:0 0 auto; border-radius:11px; display:grid; place-items:center;
+    background:transparent; border:1px solid var(--stroke); color:var(--text-2); cursor:pointer;
+    transition:transform .35s var(--ease), background .25s, color .25s, border-color .25s;
+  }
+  .icon-btn:hover{ background:var(--surface-hover); color:var(--text); border-color:var(--stroke-strong); }
+  .icon-btn:active{ transform:scale(.92); }
+  .icon-btn svg{ width:17px; height:17px; }
+
+  /* ---------- content ---------- */
+  .content{ flex:1 1 auto; padding:20px 18px calc(112px + env(safe-area-inset-bottom)); }
+
+  .view{ display:none; }
+  .view.active{ display:block; animation:viewIn .42s var(--ease) both; }
+  @keyframes viewIn{
+    from{ opacity:0; transform:translate3d(0,12px,0); }
+    to{ opacity:1; transform:none; }
+  }
+
+  .section-head{
+    display:flex; align-items:baseline; justify-content:space-between; margin:0 2px 14px;
+  }
+  .section-head h2{ margin:0; font-size:19px; font-weight:750; letter-spacing:-.2px; }
+  .section-head span{ font-size:11.5px; color:var(--text-3); letter-spacing:.3px; font-variant-numeric:tabular-nums; }
+
+  /* ---------- cards ---------- */
+  .list{ display:flex; flex-direction:column; gap:12px; }
+  .card{
+    position:relative; border-radius:var(--radius-lg); background:var(--surface);
+    border:1px solid var(--stroke); overflow:hidden;
+    transition:transform .45s var(--ease), border-color .3s, background .3s, box-shadow .45s var(--ease);
+  }
+  .boot .card{ animation:cardIn .6s var(--ease) both; }
+  @keyframes cardIn{ from{ opacity:0; transform:translateY(14px);} to{ opacity:1; transform:none;} }
+  .card:hover{
+    transform:translateY(-2px); border-color:var(--stroke-strong); background:var(--surface-hover);
+    box-shadow:0 20px 40px -28px rgba(0,0,0,.8);
+  }
+  html[data-theme="light"] .card:hover{ box-shadow:0 20px 40px -28px rgba(0,0,0,.28); }
+
+  /* doc card */
+  .card-doc{ display:flex; gap:14px; padding:12px; }
+  .doc-thumb{
+    position:relative; flex:0 0 92px; height:120px; border-radius:13px; overflow:hidden;
+    background:#161618; border:1px solid var(--stroke);
+  }
+  .doc-thumb img{
+    width:100%; height:100%; object-fit:cover; object-position:top center; display:block;
+    transition:transform .7s var(--ease);
+  }
+  .card-doc:hover .doc-thumb img{ transform:scale(1.035); }
+  .doc-thumb::after{
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(to top, rgba(0,0,0,.45), transparent 50%);
+  }
+  .tag{
+    position:absolute; left:7px; bottom:7px; z-index:2; font-size:8.5px; font-weight:800; letter-spacing:1px;
+    padding:3px 6px; border-radius:5px; color:#fff; background:rgba(0,0,0,.74);
+    border:1px solid rgba(255,255,255,.24);
+  }
+  .doc-body{ flex:1; min-width:0; display:flex; flex-direction:column; padding:2px 2px 0 0; }
+  .card-title{
+    margin:0; font-size:13.5px; line-height:1.45; font-weight:650; letter-spacing:.1px;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .card-desc{
+    margin:6px 0 0; font-size:11px; line-height:1.5; color:var(--text-3);
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .card-meta{ margin-top:auto; padding-top:8px; display:flex; align-items:center; gap:7px; font-size:10.5px; color:var(--text-3); letter-spacing:.2px; font-variant-numeric:tabular-nums; }
+  .card-meta i{ font-style:normal; opacity:.4; }
+  .actions{ display:flex; gap:8px; margin-top:9px; }
+  .btn{
+    flex:1; height:34px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    font-family:inherit; font-size:11.5px; font-weight:650; letter-spacing:.3px; text-decoration:none; cursor:pointer;
+    border:1px solid transparent; transition:transform .3s var(--ease), background .25s, border-color .25s, color .25s, opacity .25s;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn svg{ width:12px; height:12px; }
+  .btn:active{ transform:scale(.968); }
+  .btn-primary{ color:var(--btn-fg); background:var(--btn-bg); border-color:var(--btn-bg); }
+  .btn-primary:hover{ opacity:.86; }
+  .btn-ghost{ color:var(--text-2); background:transparent; border-color:var(--stroke-strong); }
+  .btn-ghost:hover{ background:var(--surface-hover); color:var(--text); }
+
+  /* video card */
+  .card-video .poster{
+    position:relative; aspect-ratio:16/9; overflow:hidden; background:#141416; cursor:pointer;
+  }
+  .poster .shot{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    transition:transform 1.2s var(--ease), opacity .5s var(--ease);
+  }
+  .card-video:hover .poster .shot{ transform:scale(1.035); }
+  .poster-scrim{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(120% 90% at 50% 40%, transparent 30%, rgba(0,0,0,.48) 100%),
+      linear-gradient(to top, rgba(0,0,0,.8) 2%, rgba(0,0,0,.06) 46%, rgba(0,0,0,.28) 100%);
+  }
+  .play{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:56px; height:56px; border-radius:50%; display:grid; place-items:center; cursor:pointer;
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.6);
+    backdrop-filter:blur(8px);
+    transition:transform .4s var(--ease), background .3s;
+  }
+  .play::before{
+    content:""; position:absolute; inset:-1px; border-radius:50%;
+    border:1px solid rgba(255,255,255,.38); animation:ring 3s ease-out infinite;
+  }
+  @keyframes ring{ 0%{transform:scale(1); opacity:.7;} 80%,100%{transform:scale(1.6); opacity:0;} }
+  .play svg{ width:17px; height:17px; fill:#fff; margin-left:3px; }
+  .card-video:hover .play{ transform:translate(-50%,-50%) scale(1.07); background:rgba(255,255,255,.22); }
+  .dur{
+    position:absolute; right:10px; bottom:10px; padding:3px 7px; border-radius:6px;
+    font-size:10px; font-weight:650; letter-spacing:.4px; color:#fff;
+    background:rgba(0,0,0,.62); border:1px solid rgba(255,255,255,.22);
+    backdrop-filter:blur(6px); font-variant-numeric:tabular-nums;
+  }
+  .kind{
+    position:absolute; left:10px; top:10px; padding:3px 8px; border-radius:6px;
+    font-size:9px; font-weight:800; letter-spacing:1.2px; color:#fff;
+    background:rgba(0,0,0,.62); border:1px solid rgba(255,255,255,.24); backdrop-filter:blur(6px);
+  }
+  .card-video .card-body{ padding:13px 13px 14px; }
+  .card-video .card-meta{ padding-top:5px; }
+  .card-video .actions{ margin-top:10px; }
+
+  .foot-note{
+    margin:26px 0 0; text-align:center; font-size:10px; letter-spacing:.4px; color:var(--text-3); opacity:.75;
+  }
+
+  /* ---------- contact ---------- */
+  .contact-intro{ margin:0 2px 18px; font-size:12.5px; line-height:1.75; color:var(--text-2); }
+  .info-card{
+    border:1px solid var(--stroke); border-radius:var(--radius-lg); background:var(--surface);
+    overflow:hidden; animation:cardIn .6s var(--ease) both;
+  }
+  .info-row{
+    display:flex; align-items:flex-start; gap:12px; padding:15px 16px;
+    border-bottom:1px solid var(--stroke); text-decoration:none; color:inherit;
+    transition:background .25s;
+  }
+  .info-row:last-child{ border-bottom:0; }
+  a.info-row:hover{ background:var(--surface-hover); }
+  .info-ico{
+    width:30px; height:30px; flex:0 0 auto; border-radius:9px; display:grid; place-items:center;
+    border:1px solid var(--stroke); background:var(--screen-bg); color:var(--text-2);
+  }
+  .info-ico svg{ width:14px; height:14px; }
+  .info-text{ flex:1; min-width:0; }
+  .info-text b{ display:block; font-size:12.5px; font-weight:650; letter-spacing:.2px; }
+  .info-text span{ display:block; margin-top:3px; font-size:11.5px; color:var(--text-2); opacity:.82; word-break:break-all; }
+  .info-arrow{ align-self:center; color:var(--text-3); opacity:.6; }
+  .info-arrow svg{ width:14px; height:14px; display:block; }
+
+  .contact-cta{ margin-top:14px; display:flex; gap:10px; }
+  .contact-cta .btn{ height:44px; border-radius:12px; font-size:12.5px; }
+
+  .contact-foot{
+    margin:26px 2px 0; padding-top:18px; border-top:1px solid var(--stroke);
+    font-size:10.5px; line-height:1.9; color:var(--text-3); letter-spacing:.3px;
+  }
+  .contact-foot b{ color:var(--text-2); font-weight:650; }
+
+  /* ---------- bottom nav ---------- */
+  .tabbar{
+    position:fixed; left:50%; bottom:calc(14px + env(safe-area-inset-bottom));
+    transform:translateX(-50%); z-index:40;
+    width:min(calc(100% - 28px), 492px); height:62px;
+    display:grid; grid-template-columns:repeat(2,1fr); align-items:center;
+    border-radius:20px; padding:0; background:var(--scrim);
+    --i:0;
+    border:1px solid var(--stroke-strong);
+    backdrop-filter:blur(22px) saturate(160%);
+    -webkit-backdrop-filter:blur(22px) saturate(160%);
+    box-shadow:0 18px 40px -22px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .indicator{
+    position:absolute; left:0; top:0; width:50%; height:100%; z-index:0;
+    display:grid; place-items:center; pointer-events:none;
+    transform:translate3d(calc(var(--i) * 100%),0,0);
+    transition:transform .42s var(--ease);
+  }
+  .indicator i{
+    display:block; width:80px; height:44px; border-radius:13px;
+    background:var(--surface); border:1px solid var(--stroke);
+  }
+  .tab{
+    position:relative; z-index:1; height:50px; border:0; background:transparent; cursor:pointer; font-family:inherit;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    color:var(--text-3); font-size:9.5px; font-weight:600; letter-spacing:.5px;
+    transition:color .3s, transform .3s var(--ease); -webkit-tap-highlight-color:transparent;
+  }
+  .tab svg{ width:19px; height:19px; transition:transform .35s var(--ease); }
+  .tab:active{ transform:scale(.94); }
+  .tab.active{ color:var(--text); }
+  .tab.active svg{ transform:translateY(-1px) scale(1.05); }
+
+  /* ---------- modal ---------- */
+  .overlay{
+    position:fixed; inset:0; z-index:200; display:flex; align-items:center; justify-content:center;
+    padding:20px; background:rgba(0,0,0,.72); backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px); opacity:0; pointer-events:none;
+    transition:opacity .38s var(--ease);
+  }
+  .overlay.open{ opacity:1; pointer-events:auto; }
+  .modal{
+    width:min(1120px,96vw); height:min(800px,88vh); display:flex; flex-direction:column;
+    border-radius:22px; overflow:hidden; background:var(--screen-bg);
+    border:1px solid var(--stroke-strong);
+    box-shadow:0 50px 120px -30px rgba(0,0,0,.85);
+    transform:translateY(18px) scale(.97); opacity:0;
+    transition:transform .45s var(--ease), opacity .4s var(--ease);
+  }
+  .overlay.open .modal{ transform:none; opacity:1; }
+  .modal-head{
+    flex:0 0 auto; display:flex; align-items:center; gap:12px; padding:12px 14px 12px 16px;
+    border-bottom:1px solid var(--stroke); background:var(--surface);
+  }
+  .modal-head .mh-ico{
+    width:34px; height:34px; border-radius:10px; display:grid; place-items:center; flex:0 0 auto;
+    border:1px solid var(--stroke-strong); color:var(--text);
+  }
+  .modal-head .mh-ico svg{ width:15px; height:15px; stroke:currentColor; fill:none; }
+  .mh-text{ flex:1; min-width:0; }
+  .mh-text h4{ margin:0; font-size:13.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mh-text p{ margin:2px 0 0; font-size:10.5px; color:var(--text-3); font-variant-numeric:tabular-nums; }
+  .mh-actions{ display:flex; align-items:center; gap:7px; }
+  .mbtn{
+    height:34px; padding:0 12px; border-radius:9px; display:inline-flex; align-items:center; gap:6px;
+    font-family:inherit; font-size:11.5px; font-weight:650; text-decoration:none; cursor:pointer;
+    border:1px solid var(--stroke-strong); background:transparent; color:var(--text-2);
+    transition:background .25s, color .25s, transform .3s var(--ease); white-space:nowrap;
+  }
+  .mbtn:hover{ background:var(--surface-hover); color:var(--text); }
+  .mbtn:active{ transform:scale(.96); }
+  .mbtn.primary{ background:var(--btn-bg); color:var(--btn-fg); border-color:var(--btn-bg); }
+  .mbtn.primary:hover{ opacity:.86; background:var(--btn-bg); color:var(--btn-fg); }
+  .mbtn svg{ width:13px; height:13px; }
+  .mclose{
+    width:34px; height:34px; border-radius:9px; display:grid; place-items:center; cursor:pointer;
+    background:transparent; border:1px solid transparent; color:var(--text-3);
+    transition:background .25s, color .25s, transform .3s var(--ease);
+  }
+  .mclose:hover{ background:var(--surface-hover); color:var(--text); transform:rotate(90deg); }
+  .mclose svg{ width:15px; height:15px; }
+  .modal-body{ flex:1 1 auto; position:relative; background:var(--surface); overflow:hidden; }
+  .modal-body iframe, .modal-body video{ width:100%; height:100%; border:0; display:block; }
+  .modal-body video{ object-fit:contain; background:#000; }
+  .pdf-hint{
+    position:absolute; left:50%; bottom:12px; transform:translateX(-50%); z-index:3;
+    display:flex; align-items:center; gap:8px; padding:7px 12px; border-radius:999px;
+    font-size:10.5px; color:var(--text-2); background:var(--scrim);
+    border:1px solid var(--stroke-strong); backdrop-filter:blur(10px); white-space:nowrap;
+  }
+  .pdf-hint a{ color:var(--text); text-decoration:none; font-weight:650; border-bottom:1px solid var(--stroke-strong); }
+  .pdf-hint a:hover{ opacity:.7; }
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed; left:50%; bottom:96px; transform:translate(-50%,20px); z-index:300;
+    display:flex; align-items:center; gap:8px; padding:10px 16px; border-radius:12px;
+    font-size:12px; font-weight:600; color:var(--text);
+    background:var(--scrim); border:1px solid var(--stroke-strong); backdrop-filter:blur(14px);
+    box-shadow:0 20px 44px -18px rgba(0,0,0,.7);
+    opacity:0; pointer-events:none; transition:opacity .3s, transform .45s var(--ease);
+  }
+  .toast.show{ opacity:1; transform:translate(-50%,0); }
+  .toast .tick{
+    width:16px; height:16px; border-radius:50%; display:grid; place-items:center; flex:0 0 auto;
+    background:var(--btn-bg);
+  }
+  .toast .tick svg{ width:9px; height:9px; stroke:var(--btn-fg); stroke-width:3.2; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:560px){
+    .app{ max-width:none; border:0; }
+    .tabbar{ width:calc(100% - 24px); }
+  }
+  @media (max-width:900px) and (min-width:561px){
+    .app{ box-shadow:0 30px 80px -40px rgba(0,0,0,.7); }
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+  }
+</style>
+</head>
+<body class="boot">
+
+<div class="app">
+
+  <!-- app bar -->
+  <header class="appbar">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
+        <path d="M2.5 9.5c2.5-3.2 4.4 3.2 6.7 0s4.2-3.2 5.7 0" opacity=".45"/>
+        <path d="M2.5 14.5c2.5-3.2 4.4 3.2 6.7 0s4.2-3.2 5.7 0" opacity=".85"/>
+        <path d="M18.5 4.5v15" stroke-width="2.2"/>
+      </svg>
+    </div>
+    <div class="appbar-title">
+      <h1>量子隧穿</h1>
+      <p>数理本质与前沿挑战</p>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换主题">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+        <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- content -->
+  <main class="content" id="content">
+
+    <!-- view: overview -->
+    <section class="view active" id="view-overview">
+      <div class="section-head">
+        <h2>资料库</h2>
+        <span id="sectionCount">共 4 项</span>
+      </div>
+      <div class="list" id="list"></div>
+      <p class="foot-note">点击卡片标题可快速预览 · 支持在线播放与下载原文件</p>
+    </section>
+
+    <!-- view: contact -->
+    <section class="view" id="view-contact">
+      <div class="section-head">
+        <h2>联系我们</h2>
+        <span>Contact</span>
+      </div>
+      <p class="contact-intro">如需获取原始素材、实验数据或就内容进行交流，欢迎通过以下方式联系项目组。</p>
+
+      <div class="info-card">
+        <a class="info-row" href="mailto:wanschan@outlook.com">
+          <div class="info-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".5"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+          </div>
+          <div class="info-text"><b>wanschan@outlook.com</b><span>成员一</span></div>
+          <span class="info-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span>
+        </a>
+        <a class="info-row" href="mailto:2298004979@qq.com">
+          <div class="info-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".5"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+          </div>
+          <div class="info-text"><b>2298004979@qq.com</b><span>成员二</span></div>
+          <span class="info-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span>
+        </a>
+        <a class="info-row" href="mailto:457376179@qq.com">
+          <div class="info-ico">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".5"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+          </div>
+          <div class="info-text"><b>457376179@qq.com</b><span>成员三</span></div>
+          <span class="info-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span>
+        </a>
+      </div>
+
+      <div class="contact-cta">
+        <a class="btn btn-primary" href="mailto:wanschan@outlook.com,2298004979@qq.com,457376179@qq.com">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".5"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+          发送邮件
+        </a>
+        <a class="btn btn-ghost" href="assets/report.pdf" download="量子隧穿的数理本质与前沿挑战_研究报告.pdf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M4.5 20h15"/></svg>
+          下载报告
+        </a>
+      </div>
+
+      <div class="contact-foot">
+        <b>量子隧穿的数理本质与前沿挑战</b><br>
+        第十二届全国大学生物理实验竞赛（创新）· 命题类作品 · 题目 5<br>
+        © 2026 Quantum Tunneling Project
+      </div>
+    </section>
+
+  </main>
+
+  <!-- bottom nav -->
+  <nav class="tabbar" id="tabbar">
+    <span class="indicator" aria-hidden="true"><i></i></span>
+    <button class="tab active" data-view="overview">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2"/></svg>
+      <span>概览</span>
+    </button>
+    <button class="tab" data-view="contact">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".55"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+      <span>联系我们</span>
+    </button>
+  </nav>
+
+</div>
+
+<!-- preview modal -->
+<div class="overlay" id="overlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <div class="mh-ico">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg>
+      </div>
+      <div class="mh-text">
+        <h4 id="mTitle">预览</h4>
+        <p id="mSub"></p>
+      </div>
+      <div class="mh-actions">
+        <a class="mbtn" id="mOpen" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>
+          新窗口
+        </a>
+        <a class="mbtn primary" id="mDownload">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/></svg>
+          下载
+        </a>
+        <button class="mclose" id="mClose" aria-label="关闭">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span>
+  <span id="toastText">开始下载</span>
+</div>
+
+<script>
+/* ============ data ============ */
+const ITEMS = [
+  {
+    id: 'slides', kind: 'pdf', tag: 'PDF',
+    title: '量子隧穿的数理本质与前沿挑战 · 介绍 PPT',
+    desc: '第十二届全国大学生物理实验竞赛（创新）命题类作品 · 39 页幻灯片',
+    src: 'assets/slides.pdf',
+    thumb: 'assets/thumb/slides.png',
+    meta: ['39 页', '8.9 MB', '2026.09'],
+    download: '量子隧穿的数理本质与前沿挑战_介绍PPT.pdf'
+  },
+  {
+    id: 'report', kind: 'pdf', tag: 'PDF',
+    title: '量子隧穿的数理本质与前沿挑战 · 研究报告',
+    desc: '波函数推导、WKB 近似、透射系数与前沿挑战的系统论述',
+    src: 'assets/report.pdf',
+    thumb: 'assets/thumb/report.png',
+    meta: ['28 页', '1.7 MB', '2026.09'],
+    download: '量子隧穿的数理本质与前沿挑战_研究报告.pdf'
+  },
+  {
+    id: 'intro', kind: 'video', tag: 'VIDEO',
+    title: '介绍视频 · 完整讲解',
+    desc: '从经典禁区到量子隧穿的完整物理图像与实验演示',
+    src: 'assets/intro.mp4',
+    poster: 'assets/thumb/intro.jpg',
+    meta: ['21.2 MB', 'MP4 · H.264'],
+    download: '量子隧穿的数理本质与前沿挑战_介绍视频.mp4'
+  },
+  {
+    id: 'micro', kind: 'video', tag: 'SHORT',
+    title: '微视频 · 概念速览',
+    desc: '精简版：三分钟抓住隧穿效应的核心与量级',
+    src: 'assets/micro.mp4',
+    poster: 'assets/thumb/micro.jpg',
+    meta: ['21.6 MB', 'MP4 · H.264'],
+    download: '量子隧穿的数理本质与前沿挑战_微视频.mp4'
+  }
+];
+
+const LIST = document.getElementById('list');
+const CONTENT = document.getElementById('content');
+const OVERLAY = document.getElementById('overlay');
+const MODAL_BODY = document.getElementById('modalBody');
+
+/* ============ icons ============ */
+const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5.2v13.6L19 12z"/></svg>';
+const ICON_EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></svg>';
+const ICON_DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M4.5 20h15"/></svg>';
+
+/* ============ helpers ============ */
+const el = (html) => {
+  const t = document.createElement('template');
+  t.innerHTML = html.trim();
+  return t.content.firstElementChild;
+};
+
+function fmtTime(sec){
+  if(!isFinite(sec) || sec <= 0) return '--:--';
+  const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+  return String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+/* ============ render ============ */
+function buildDocCard(it, i){
+  return el(`
+    <article class="card card-doc" data-id="${it.id}" style="animation-delay:${i*70}ms">
+      <div class="doc-thumb">
+        <img src="${it.thumb}" alt="${it.title}" loading="lazy">
+        <span class="tag">${it.tag}</span>
+      </div>
+      <div class="doc-body">
+        <h4 class="card-title">${it.title}</h4>
+        <p class="card-desc">${it.desc}</p>
+        <div class="card-meta">${it.meta.map(m=>`<span>${m}</span>`).join('<i>·</i>')}</div>
+        <div class="actions">
+          <button class="btn btn-primary" data-open>${ICON_EYE}预览</button>
+          <a class="btn btn-ghost" href="${it.src}" download="${it.download}">${ICON_DL}下载</a>
+        </div>
+      </div>
+    </article>
+  `);
+}
+
+function buildVideoCard(it, i){
+  return el(`
+    <article class="card card-video" data-id="${it.id}" style="animation-delay:${i*70}ms">
+      <div class="poster" data-src="${it.src}" data-open>
+        <img class="shot" src="${it.poster}" alt="${it.title}" loading="lazy">
+        <div class="poster-scrim"></div>
+        <span class="kind">${it.tag}</span>
+        <button class="play" data-open aria-label="播放">${ICON_PLAY}</button>
+        <span class="dur" data-dur>--:--</span>
+      </div>
+      <div class="card-body">
+        <h4 class="card-title">${it.title}</h4>
+        <p class="card-desc">${it.desc}</p>
+        <div class="card-meta">${it.meta.map(m=>`<span>${m}</span>`).join('<i>·</i>')}</div>
+        <div class="actions">
+          <button class="btn btn-primary" data-open>${ICON_PLAY}播放</button>
+          <a class="btn btn-ghost" href="${it.src}" download="${it.download}">${ICON_DL}下载</a>
+        </div>
+      </div>
+    </article>
+  `);
+}
+
+function render(){
+  document.getElementById('sectionCount').textContent = `共 ${ITEMS.length} 项`;
+  LIST.innerHTML = '';
+  ITEMS.forEach((it, i) => {
+    LIST.appendChild(it.kind === 'pdf' ? buildDocCard(it, i) : buildVideoCard(it, i));
+  });
+  LIST.querySelectorAll('.poster').forEach(p => probeDuration(p));
+}
+
+/* ============ 时长探测（只读元数据，不加载整段视频） ============ */
+let probeQueue = Promise.resolve();
+function probeDuration(posterEl){
+  probeQueue = probeQueue.then(() => new Promise(resolve => {
+    const src = posterEl.dataset.src;
+    const durEl = posterEl.querySelector('[data-dur]');
+    if(!src || !durEl) return resolve();
+
+    const v = document.createElement('video');
+    let done = false;
+    const finish = () => { if(done) return; done = true; clearTimeout(timer); v.removeAttribute('src'); v.load(); resolve(); };
+    const timer = setTimeout(finish, 8000);
+
+    v.preload = 'metadata';
+    v.muted = true; v.playsInline = true;
+    v.addEventListener('loadedmetadata', () => { durEl.textContent = fmtTime(v.duration); finish(); });
+    v.addEventListener('error', finish);
+    v.src = src;
+  }));
+}
+
+/* ============ modal ============ */
+function openPreview(id){
+  const it = ITEMS.find(x => x.id === id);
+  if(!it) return;
+
+  document.getElementById('mTitle').textContent = it.title;
+  document.getElementById('mSub').textContent = it.meta.join(' · ');
+  const dl = document.getElementById('mDownload');
+  dl.href = it.src; dl.setAttribute('download', it.download);
+  document.getElementById('mOpen').href = it.src;
+
+  MODAL_BODY.innerHTML = '';
+  if(it.kind === 'pdf'){
+    const frame = document.createElement('iframe');
+    frame.src = it.src + '#view=FitH&navpanes=0';
+    frame.title = it.title;
+    MODAL_BODY.appendChild(frame);
+    MODAL_BODY.appendChild(el(`
+      <div class="pdf-hint">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+        <span>若预览空白，请<a href="${it.src}" target="_blank" rel="noopener">新窗口打开</a>或使用本地服务</span>
+      </div>
+    `));
+  }else{
+    const video = document.createElement('video');
+    video.src = it.src;
+    video.controls = true;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.setAttribute('preload','metadata');
+    MODAL_BODY.appendChild(video);
+    const p = video.play();
+    if(p && p.catch) p.catch(() => {});
+  }
+
+  OVERLAY.classList.add('open');
+  OVERLAY.setAttribute('aria-hidden','false');
+  document.documentElement.style.overflow = 'hidden';
+}
+
+function closeModal(){
+  OVERLAY.classList.remove('open');
+  OVERLAY.setAttribute('aria-hidden','true');
+  document.documentElement.style.overflow = '';
+  setTimeout(() => {
+    const v = MODAL_BODY.querySelector('video');
+    if(v){ v.pause(); v.removeAttribute('src'); v.load(); }
+    MODAL_BODY.innerHTML = '';
+  }, 320);
+}
+
+document.getElementById('mClose').addEventListener('click', closeModal);
+OVERLAY.addEventListener('click', e => { if(e.target === OVERLAY) closeModal(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+/* ============ list interactions ============ */
+LIST.addEventListener('click', e => {
+  const card = e.target.closest('.card');
+  if(!card) return;
+  if(e.target.closest('[data-open]')){
+    e.preventDefault();
+    openPreview(card.dataset.id);
+  }
+});
+
+/* ============ views ============ */
+const TABBAR = document.getElementById('tabbar');
+const TABS = [...document.querySelectorAll('.tab')];
+let currentView = 'overview';
+
+function setView(name, opts){
+  if(name === currentView) return;
+  currentView = name;
+  if(!opts || opts.scroll !== false){
+    window.scrollTo({ top:0, behavior:'auto' });
+  }
+  TABS.forEach(t => t.classList.toggle('active', t.dataset.view === name));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  const idx = TABS.findIndex(t => t.dataset.view === name);
+  if(idx >= 0) TABBAR.style.setProperty('--i', idx);
+}
+
+TABBAR.addEventListener('click', e => {
+  const tab = e.target.closest('.tab');
+  if(tab) setView(tab.dataset.view);
+});
+
+/* ============ toast ============ */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toastText').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
+}
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[download]');
+  if(a) toast('开始下载 · ' + a.getAttribute('download'));
+});
+
+/* ============ theme ============ */
+const SUN = '<path d="M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M18.4 5.6l1.4-1.4M4.2 19.8l1.4-1.4"/><circle cx="12" cy="12" r="4"/>';
+const MOON = '<path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"/>';
+const themeIcon = document.getElementById('themeIcon');
+function setTheme(mode){
+  document.documentElement.dataset.theme = mode;
+  themeIcon.innerHTML = mode === 'dark' ? MOON : SUN;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if(meta) meta.setAttribute('content', mode === 'dark' ? '#0b0b0c' : '#ffffff');
+  try{ localStorage.setItem('qt-theme', mode); }catch(e){}
+}
+document.getElementById('themeBtn').addEventListener('click', () => {
+  setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+});
+try{
+  const saved = localStorage.getItem('qt-theme');
+  if(saved) setTheme(saved);
+}catch(e){}
+
+/* ============ boot ============ */
+render();
+setTimeout(() => document.body.classList.remove('boot'), 1600);
+
+(function bootFromQuery(){
+  const q = new URLSearchParams(location.search);
+  const th = q.get('theme');
+  if(th === 'light' || th === 'dark') setTheme(th);
+  const view = q.get('view');
+  if(view === 'contact' || view === 'overview') setView(view);
+  const open = q.get('open');
+  if(open && ITEMS.some(i => i.id === open)) setTimeout(() => openPreview(open), 320);
+})();
+</script>
+</body>
+</html>
