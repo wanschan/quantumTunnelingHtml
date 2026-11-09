@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0b0b0c">
+<html lang="zh-CN" data-theme="dark" data-page-node-id="wczA2BjNQJlAHym3YGtkL6">
+<head data-page-node-id="nibiRmSeK32tAHXBkF0V2w">
+<meta charset="UTF-8" data-page-node-id="z7ODZueAix2IBX6JszFuRJ">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" data-page-node-id="CptsrvfYGJiIJ3AbaBL4nT">
+<meta name="theme-color" content="#0b0b0c" data-page-node-id="LKm1ERE32UU5aCkOCzTQbY">
 <title>量子隧穿 · 资料库</title>
 <style>
   /* ---------- tokens : monochrome UI, color content ---------- */
@@ -26,6 +26,19 @@
     --btn-bg:#fafafa;
     --btn-fg:#0a0a0a;
     --scrim:rgba(11,11,12,.82);
+    /* 液态玻璃：极淡的白层 + 折射形变 + 细亮边（清亮、透光优先） */
+    --glass-tint:rgba(255,255,255,.42);
+    --glass-sheen:rgba(255,255,255,.32);
+    --glass-wash:rgba(255,255,255,.20);
+    --glass-wash-2:rgba(255,255,255,.15);
+    --glass-border:rgba(255,255,255,.58);
+    --glass-inset:rgba(255,255,255,.96);
+    --glass-bright:1.10;
+    --pill-bg:rgba(255,255,255,.72);
+    --pill-border:rgba(255,255,255,.92);
+    --pill-inset:rgba(255,255,255,1);
+    --tab-idle:rgba(10,10,13,.76);
+    --tab-active:#0a0a0b;
   }
   html[data-theme="light"]{
     --page-bg:#ececec;
@@ -40,6 +53,18 @@
     --btn-bg:#111113;
     --btn-fg:#fafafa;
     --scrim:rgba(255,255,255,.86);
+    --glass-tint:rgba(255,255,255,.50);
+    --glass-sheen:rgba(255,255,255,.72);
+    --glass-wash:rgba(255,255,255,.34);
+    --glass-wash-2:rgba(255,255,255,.24);
+    --glass-border:rgba(9,9,11,.075);
+    --glass-inset:rgba(255,255,255,1);
+    --glass-bright:1.04;
+    --pill-bg:rgba(255,255,255,.94);
+    --pill-border:rgba(9,9,11,.06);
+    --pill-inset:rgba(255,255,255,1);
+    --tab-idle:rgba(10,10,13,.42);
+    --tab-active:#0a0a0b;
   }
 
   *,*::before,*::after{ box-sizing:border-box; }
@@ -52,6 +77,7 @@
   }
 
   /* ---------- app shell ---------- */
+  .lg-defs{ position:absolute; width:0; height:0; overflow:hidden; }
   .app{
     position:relative; width:100%; max-width:520px; min-height:100vh; min-height:100dvh;
     margin:0 auto; background:var(--screen-bg);
@@ -100,6 +126,27 @@
   }
   .section-head h2{ margin:0; font-size:19px; font-weight:750; letter-spacing:-.2px; }
   .section-head span{ font-size:11.5px; color:var(--text-3); letter-spacing:.3px; font-variant-numeric:tabular-nums; }
+  .section-head--gap{ margin-top:26px; }
+
+  /* ---------- 作品介绍 ---------- */
+  .intro-card{
+    position:relative; overflow:hidden;
+    padding:16px 16px 15px; border-radius:var(--radius-lg);
+    background:var(--surface); border:1px solid var(--stroke);
+  }
+  .intro-card::before{
+    content:""; position:absolute; inset:0 0 auto 0; height:132px; pointer-events:none;
+    background:radial-gradient(130% 150% at 10% 0%, rgba(255,255,255,.055), transparent 72%);
+  }
+  html[data-theme="light"] .intro-card::before{
+    background:radial-gradient(130% 150% at 10% 0%, rgba(9,9,11,.03), transparent 72%);
+  }
+  .intro-card p{
+    position:relative; margin:0; font-size:12.5px; line-height:1.9;
+    color:var(--text-2); letter-spacing:.15px;
+  }
+  .intro-card p + p{ margin-top:10px; }
+  .intro-card b{ color:var(--text); font-weight:650; letter-spacing:.2px; }
 
   /* ---------- cards ---------- */
   .list{ display:flex; flex-direction:column; gap:12px; }
@@ -248,32 +295,63 @@
     transform:translateX(-50%); z-index:40;
     width:min(calc(100% - 28px), 492px); height:62px;
     display:grid; grid-template-columns:repeat(2,1fr); align-items:center;
-    border-radius:20px; padding:0; background:var(--scrim);
-    --i:0;
-    border:1px solid var(--stroke-strong);
-    backdrop-filter:blur(22px) saturate(160%);
-    -webkit-backdrop-filter:blur(22px) saturate(160%);
-    box-shadow:0 18px 40px -22px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.06);
+    border-radius:22px; padding:0; --i:0;
+    overflow:hidden; isolation:isolate;
+    box-shadow:0 0 0 1px rgba(0,0,0,.10), 0 24px 56px -28px rgba(0,0,0,.62);
+  }
+  /* 玻璃层：外扩 26px，折射采样远离可视边缘，圆角切出来才不会糊边漏色 */
+  .glass{
+    position:absolute; inset:-26px; z-index:0; border-radius:calc(22px + 26px); pointer-events:none;
+    background-color:var(--glass-tint);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23g)' opacity='.05'/%3E%3C/svg%3E"),
+      linear-gradient(180deg, var(--glass-sheen) 0%, var(--glass-wash) 48%, var(--glass-wash-2) 100%);
+    backdrop-filter:blur(18px) saturate(175%) brightness(var(--glass-bright));
+    -webkit-backdrop-filter:blur(18px) saturate(175%) brightness(var(--glass-bright));
+    backdrop-filter:blur(7px) saturate(200%) brightness(var(--glass-bright)) url(#lgWarp);
+    -webkit-backdrop-filter:blur(7px) saturate(200%) brightness(var(--glass-bright)) url(#lgWarp);
+  }
+  /* 玻璃边：细亮环 + 顶高光 + 底反光，圆角由父级裁切 */
+  .tabbar::before{
+    content:""; position:absolute; inset:0; z-index:3; pointer-events:none;
+    border-radius:inherit;
+    box-shadow:
+      inset 0 1px 0 var(--glass-inset),
+      inset 0 -1px 0 rgba(255,255,255,.34),
+      inset 0 0 0 1px var(--glass-border);
+  }
+  /* 液面反光 */
+  .tabbar::after{
+    content:""; position:absolute; inset:0; z-index:4; pointer-events:none;
+    border-radius:inherit; mix-blend-mode:screen; opacity:.9;
+    background:
+      radial-gradient(130% 180% at 14% -60%, rgba(255,255,255,.30), transparent 62%),
+      radial-gradient(70% 140% at 90% -40%, rgba(255,255,255,.13), transparent 58%),
+      linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 36%);
   }
   .indicator{
-    position:absolute; left:0; top:0; width:50%; height:100%; z-index:0;
+    position:absolute; left:0; top:0; width:50%; height:100%; z-index:1;
     display:grid; place-items:center; pointer-events:none;
     transform:translate3d(calc(var(--i) * 100%),0,0);
     transition:transform .42s var(--ease);
   }
   .indicator i{
-    display:block; width:80px; height:44px; border-radius:13px;
-    background:var(--surface); border:1px solid var(--stroke);
+    display:block; width:82px; height:44px; border-radius:15px;
+    background:var(--pill-bg);
+    box-shadow:
+      inset 0 1px 0 var(--pill-inset),
+      inset 0 0 0 1px var(--pill-border),
+      0 3px 10px -6px rgba(0,0,0,.45);
   }
   .tab{
-    position:relative; z-index:1; height:50px; border:0; background:transparent; cursor:pointer; font-family:inherit;
+    position:relative; z-index:2; height:50px; border:0; background:transparent; cursor:pointer; font-family:inherit;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
-    color:var(--text-3); font-size:9.5px; font-weight:600; letter-spacing:.5px;
+    color:var(--tab-idle); font-size:10px; font-weight:650; letter-spacing:.5px;
     transition:color .3s, transform .3s var(--ease); -webkit-tap-highlight-color:transparent;
   }
   .tab svg{ width:19px; height:19px; transition:transform .35s var(--ease); }
   .tab:active{ transform:scale(.94); }
-  .tab.active{ color:var(--text); }
+  .tab.active{ color:var(--tab-active); }
   .tab.active svg{ transform:translateY(-1px) scale(1.05); }
 
   /* ---------- modal ---------- */
@@ -365,89 +443,115 @@
   }
 </style>
 </head>
-<body class="boot">
+<body class="boot" data-page-node-id="ZCj3E8omsl8n5KPlV7DI5v">
 
-<div class="app">
+<!-- 液态玻璃折射滤镜：低频湍流噪声驱动位移，让背景像透过液滴一样被轻微弯折 -->
+<svg class="lg-defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="lgWarp" x="-30%" y="-40%" width="160%" height="180%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.018" numOctaves="2" seed="11" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="3.2" result="soft"/>
+      <feDisplacementMap in="SourceGraphic" in2="soft" scale="70" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="lgWarpSm" x="-40%" y="-60%" width="180%" height="220%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.04" numOctaves="2" seed="5" result="n2"/>
+      <feGaussianBlur in="n2" stdDeviation="1.6" result="s2"/>
+      <feDisplacementMap in="SourceGraphic" in2="s2" scale="9" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="app" data-page-node-id="PIl7pEpTRSYwy04ubXCTs9">
 
   <!-- app bar -->
-  <header class="appbar">
-    <div class="brand">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round">
-        <path d="M2.5 9.5c2.5-3.2 4.4 3.2 6.7 0s4.2-3.2 5.7 0" opacity=".45"/>
-        <path d="M2.5 14.5c2.5-3.2 4.4 3.2 6.7 0s4.2-3.2 5.7 0" opacity=".85"/>
-        <path d="M18.5 4.5v15" stroke-width="2.2"/>
+  <header class="appbar" data-page-node-id="PtTbEo2Qc60NwICmTc2YCA">
+    <div class="brand" data-page-node-id="Yu4SwpyB2n3COEmtq65rX3">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" data-page-node-id="P4OmstbqhH4sCRMmqxF2VK">
+        <path d="M2.5 9.5c2.5-3.2 4.4 3.2 6.7 0s4.2-3.2 5.7 0" opacity=".45" data-page-node-id="QDmUymza37XZcCraMXyxKY"/>
+        <path d="M2.5 14.5c2.5-3.2 4.4 3.2 6.7 0s4.2-3.2 5.7 0" opacity=".85" data-page-node-id="21W894MybJBLYdQTtnQ2ED"/>
+        <path d="M18.5 4.5v15" stroke-width="2.2" data-page-node-id="vLQSO4xCsVnYD6XvbG0Hvh"/>
       </svg>
     </div>
-    <div class="appbar-title">
-      <h1>量子隧穿</h1>
-      <p>数理本质与前沿挑战</p>
+    <div class="appbar-title" data-page-node-id="0HJV53nrNpFvQHbwN5l8aO">
+      <h1 data-page-node-id="jRTlNM3AWGAsJ4eiZGgBGQ">量子隧穿</h1>
+      <p data-page-node-id="AsRRKQVY15Rg0lEfHmGI7n">数理本质与前沿挑战</p>
     </div>
-    <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换主题">
-      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
-        <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z"/>
+    <button class="icon-btn" id="themeBtn" title="切换主题" aria-label="切换主题" data-page-node-id="ep1D4lP8F4uVm3dLlNNAqK">
+      <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" data-page-node-id="8KGhNEBWUcycNT2ZKrDzQs">
+        <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8Z" data-page-node-id="p5fG90zkimSJRv5tcyGfbo"/>
       </svg>
     </button>
   </header>
 
   <!-- content -->
-  <main class="content" id="content">
+  <main class="content" id="content" data-page-node-id="x6aBb60ohGAwIc7wJgDLxg">
 
     <!-- view: overview -->
-    <section class="view active" id="view-overview">
-      <div class="section-head">
-        <h2>资料库</h2>
-        <span id="sectionCount">共 4 项</span>
+    <section class="view active" id="view-overview" data-page-node-id="yJFShE1HVMFBoXB7LiUhca">
+      <div class="section-head" data-page-node-id="Xu50V3YcdTML7KgkpM3DU3">
+        <h2 data-page-node-id="sqH22frvInxPfHV4XkTOWq">作品介绍</h2>
+        <span data-page-node-id="AbOUTs01xQ7pLm2NvKd8Rz">About</span>
       </div>
-      <div class="list" id="list"></div>
-      <p class="foot-note">点击卡片标题可快速预览 · 支持在线播放与下载原文件</p>
+      <div class="intro-card" data-page-node-id="InTrodUcT10nCard0aB9x">
+        <p data-page-node-id="InTrodP1a2b3c4d5e6f7g">本作品围绕量子隧穿开展教学设计，针对「<b>为什么能穿</b>」与「<b>穿了之后会怎样</b>」两大问题展开，将量子力学基础理论与现代科技前沿发展相融合进行讲解。</p>
+        <p data-page-node-id="InTrodP2a2b3c4d5e6f7g">作品覆盖<b>知识、能力、价值</b>三维目标，内容包含构建一维有限高势垒模型，对定态薛定谔方程进行求解，结合边界连续性条件推导透射系数等；代入实参计算可得透射系数 <b>T</b>。针对现有教学痛点，本作品结合 Manim 可视化、Blender 仿真模型、PPT 公式推导、PR 后期合成，完成从物理现象、理论推导到实际应用的闭环呈现。</p>
+        <p data-page-node-id="InTrodP3a2b3c4d5e6f7g">作品连通理论物理与前沿科技，结合 <b>α 衰变</b>、<b>扫描隧道显微镜</b>、<b>芯片 3 纳米制程</b>的应用场景，引导学习者完成从「看懂公式」到「看见物理」的认知跃迁。</p>
+      </div>
+
+      <div class="section-head section-head--gap" data-page-node-id="SectHeadList03a9">
+        <h2 data-page-node-id="sqH22frvInxPfHV4XkTOWq2">资料库</h2>
+        <span id="sectionCount" data-page-node-id="rMSYIc1UDBp9pJPFletfzF">共 4 项</span>
+      </div>
+      <div class="list" id="list" data-page-node-id="zIZLoAJmsas6o6VOM9skNd"></div>
+      <p class="foot-note" data-page-node-id="GcatrADmOnp8M4k5nNWwzO">点击卡片标题可快速预览 · 支持在线播放与下载原文件</p>
     </section>
 
     <!-- view: contact -->
-    <section class="view" id="view-contact">
-      <div class="section-head">
-        <h2>联系我们</h2>
-        <span>Contact</span>
+    <section class="view" id="view-contact" data-page-node-id="GREXHGiM4fvbTEtWqBwR47">
+      <div class="section-head" data-page-node-id="LdiaS7QtK4RLDTeOCyxeFl">
+        <h2 data-page-node-id="cWcB1lDUQRaAXsHHGDT0wm">联系我们</h2>
+        <span data-page-node-id="MleHuxnWSM0s1LBXEIs2kV">Contact</span>
       </div>
-      <p class="contact-intro">如需获取原始素材、实验数据或就内容进行交流，欢迎通过以下方式联系项目组。</p>
+      <p class="contact-intro" data-page-node-id="s9rUQt9flZYNT0Lpt23XN1">如需获取原始素材、实验数据或就内容进行交流，欢迎通过以下方式联系项目组。</p>
 
-      <div class="info-card">
-        <a class="info-row" href="mailto:wanschan@outlook.com">
-          <div class="info-ico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".5"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+      <div class="info-card" data-page-node-id="fKVrd9dPYOVfH0ZefQMCve">
+        <a class="info-row" href="mailto:wanschan@outlook.com" data-page-node-id="wpie5TQSmwXz9C9axuHdB2">
+          <div class="info-ico" data-page-node-id="q68IBqlcT5lBTUNpAkzyBA">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="Xqx0dskqthTsdxyVxToA3l"><path d="M4 6.5h16v11H4z" opacity=".5" data-page-node-id="cBSiJE1CARXM3EJTQCrVbQ"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4" data-page-node-id="5WWy7xPGwZi6hufQD2Qc0r"/></svg>
           </div>
-          <div class="info-text"><b>wanschan@outlook.com</b><span>成员一</span></div>
-          <span class="info-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span>
+          <div class="info-text" data-page-node-id="jMcdyVe8DuhN1rcNaKkYef"><b data-page-node-id="6LHvvCDRfBITuPTZSIw8y8">wanschan@outlook.com</b><span data-page-node-id="vuFVlYyGaDkxD9iLKxPVL3">成员一</span></div>
+          <span class="info-arrow" data-page-node-id="ByeBIQHNDlKGgCVgyRFj7t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="P1yYP8rLVRcBA4wryc6e9S"><path d="m9 5 7 7-7 7" data-page-node-id="DIFqF8lSANGNvliU3WfV9K"/></svg></span>
         </a>
-        <a class="info-row" href="mailto:2298004979@qq.com">
-          <div class="info-ico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".5"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+        <a class="info-row" href="mailto:2298004979@qq.com" data-page-node-id="XXSAzdb9f3Xoi4TwMwPNx1">
+          <div class="info-ico" data-page-node-id="c1fv3oUBS6OZsAmlKSZB0V">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="GxfYHjE49gj4soeovJLTUb"><path d="M4 6.5h16v11H4z" opacity=".5" data-page-node-id="4KFQkHmxaxt8fGnLQOrG1y"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4" data-page-node-id="2cjaUpAyrDa5wCYD0Htcl7"/></svg>
           </div>
-          <div class="info-text"><b>2298004979@qq.com</b><span>成员二</span></div>
-          <span class="info-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span>
+          <div class="info-text" data-page-node-id="MPlWfNh3dpbLvp9AC3V4ZQ"><b data-page-node-id="Q8YeO1eGSxA8T71RDhl0Sd">2298004979@qq.com</b><span data-page-node-id="MY0d2NTZMBEFrNtefV6jlW">成员二</span></div>
+          <span class="info-arrow" data-page-node-id="GijzGBbYPPMOZku7pdwCOG"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="vIZXgyY0xHxAANp3xlrunK"><path d="m9 5 7 7-7 7" data-page-node-id="VrepwFy5cRRJ37smsYvBqm"/></svg></span>
         </a>
-        <a class="info-row" href="mailto:457376179@qq.com">
-          <div class="info-ico">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".5"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+        <a class="info-row" href="mailto:457376179@qq.com" data-page-node-id="V1AnTGRFIuVtSTw9jTikNL">
+          <div class="info-ico" data-page-node-id="lsDW8ldqJJA3MLU56UKP32">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="knCPZy1UhFDIbwFEeH3U6o"><path d="M4 6.5h16v11H4z" opacity=".5" data-page-node-id="9loTrOwGw6NIlcHcHjAq0O"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4" data-page-node-id="fBJXrZqSpWv6sBcVyFAZla"/></svg>
           </div>
-          <div class="info-text"><b>457376179@qq.com</b><span>成员三</span></div>
-          <span class="info-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span>
+          <div class="info-text" data-page-node-id="ETLZCQCE9CDYHAh1GJISPl"><b data-page-node-id="ZS3P9ZzbX7Mt0fCCtNKF2g">457376179@qq.com</b><span data-page-node-id="H3V10TU7mj9cgNadVA4XAV">成员三</span></div>
+          <span class="info-arrow" data-page-node-id="YdNFTvSJAdESHu0n31IQll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="daIJFDf0reHyyMz1wzIBwo"><path d="m9 5 7 7-7 7" data-page-node-id="xAyTUh7l3OrdzDxkjNn99N"/></svg></span>
         </a>
       </div>
 
-      <div class="contact-cta">
-        <a class="btn btn-primary" href="mailto:wanschan@outlook.com,2298004979@qq.com,457376179@qq.com">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".5"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+      <div class="contact-cta" data-page-node-id="NmkHrq1HDAtfEgNr7vsLDF">
+        <a class="btn btn-primary" href="mailto:wanschan@outlook.com,2298004979@qq.com,457376179@qq.com" data-page-node-id="Cw4oQo2wkcwhoS3iL15AyC">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="alODZFTlyn3Q5njxOV9fTB"><path d="M4 6.5h16v11H4z" opacity=".5" data-page-node-id="vVjkxGAIEsrkErEScF787B"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4" data-page-node-id="FMczBHCmEUslIJ782hx2Ya"/></svg>
           发送邮件
         </a>
-        <a class="btn btn-ghost" href="report.pdf" download="量子隧穿的数理本质与前沿挑战_研究报告.pdf">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M4.5 20h15"/></svg>
+        <a class="btn btn-ghost" href="report.pdf" download="量子隧穿的数理本质与前沿挑战_研究报告.pdf" data-page-node-id="IUChrauS6024do7cWdtKgw">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="1F3XfrnlyQH7OkeIA2s2nI"><path d="M12 3.5v11" data-page-node-id="qMaCT5WBthejPWXudhIEyj"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5" data-page-node-id="EMYPmm4k2AcvtcAFF5HGLH"/><path d="M4.5 20h15" data-page-node-id="9hWePpqa1AspDejwITvFHJ"/></svg>
           下载报告
         </a>
       </div>
 
-      <div class="contact-foot">
-        <b>量子隧穿的数理本质与前沿挑战</b><br>
-        第十二届全国大学生物理实验竞赛（创新）· 命题类作品 · 题目 5<br>
+      <div class="contact-foot" data-page-node-id="1AQRfqprk3WxcyY1x9gpxF">
+        <b data-page-node-id="vD4AnGJtdVvKgrSL0ObmDG">量子隧穿的数理本质与前沿挑战</b><br data-page-node-id="2xEJ7W7KXau3zhHaeSrKW8">
+        第十二届全国大学生物理实验竞赛（创新）· 命题类作品 · 题目 5<br data-page-node-id="TqrOPPNPo0fqqcUxGPNOg8">
         © 2026 Quantum Tunneling Project
       </div>
     </section>
@@ -455,52 +559,53 @@
   </main>
 
   <!-- bottom nav -->
-  <nav class="tabbar" id="tabbar">
-    <span class="indicator" aria-hidden="true"><i></i></span>
-    <button class="tab active" data-view="overview">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2"/></svg>
-      <span>概览</span>
+  <nav class="tabbar" id="tabbar" data-page-node-id="tU6jRziQeZnrgKRK2Nfbxs">
+    <span class="glass" aria-hidden="true" data-page-node-id="tU6jRziQeZnrgKRK2Nfbxs"></span>
+    <span class="indicator" aria-hidden="true" data-page-node-id="2vTqnXQsKUsd4V2NDjeFzR"><i data-page-node-id="9yhG6R6oP0RAV7zK10qODw"></i></span>
+    <button class="tab active" data-view="overview" data-page-node-id="WBigcJiGwWdW0hH0EIizSi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="yiDdFLzopRhfkHKTDVPod6"><rect x="3" y="3" width="7.5" height="7.5" rx="2.2" data-page-node-id="K80iMWZlQ9fhdpsa4dazwx"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2.2" data-page-node-id="njs7rCfBTnDts3nTlsyokb"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2.2" data-page-node-id="G4x51ebEpnBt1bYCJJCBxg"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2.2" data-page-node-id="VxODCtEgL8bEpCOSNLP2Ye"/></svg>
+      <span data-page-node-id="YWHixlwV1v6fVO9pFbFJAl">概览</span>
     </button>
-    <button class="tab" data-view="contact">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".55"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
-      <span>联系我们</span>
+    <button class="tab" data-view="contact" data-page-node-id="BgPczTu40RMMtM4E1Pv6SA">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="jCCAWaMTgsa2toG7nqMcDE"><path d="M4 6.5h16v11H4z" opacity=".55" data-page-node-id="ruAdAAiwkdI1vT4OD3Gon4"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4" data-page-node-id="WOqJHlcbil9z01qjBbMyaR"/></svg>
+      <span data-page-node-id="FyPub9KU05TwPCbb71MQHY">联系我们</span>
     </button>
   </nav>
 
 </div>
 
 <!-- preview modal -->
-<div class="overlay" id="overlay" aria-hidden="true">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="modal-head">
-      <div class="mh-ico">
-        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/></svg>
+<div class="overlay" id="overlay" aria-hidden="true" data-page-node-id="NlFR9dMdeYHadCGgw6zghg">
+  <div class="modal" role="dialog" aria-modal="true" data-page-node-id="jOSvrMEXk8b2b55BFGB0WR">
+    <div class="modal-head" data-page-node-id="RFgOATHB1TtYqlBYDFLcbC">
+      <div class="mh-ico" data-page-node-id="XVSD0x9a4zBFoE8tPrdxeP">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="oQiZahfpo8LykHWMhyG9BW"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z" data-page-node-id="bGujcmAZgOfYH4Si9T47Wp"/><path d="M14 3v5h5" data-page-node-id="ayzsLAM9ZJJrHqgL0yYtGh"/></svg>
       </div>
-      <div class="mh-text">
-        <h4 id="mTitle">预览</h4>
-        <p id="mSub"></p>
+      <div class="mh-text" data-page-node-id="AVViryGCP9GBDujBEkb0cm">
+        <h4 id="mTitle" data-page-node-id="HFeNNuJiwo7ye7W3d7sTHb">预览</h4>
+        <p id="mSub" data-page-node-id="5MBNgsZVBHUlkUjTiv8Vpw"></p>
       </div>
-      <div class="mh-actions">
-        <a class="mbtn" id="mOpen" target="_blank" rel="noopener">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/></svg>
+      <div class="mh-actions" data-page-node-id="uffF6TFmnnSZWI1vS6XTRu">
+        <a class="mbtn" id="mOpen" target="_blank" rel="noopener" data-page-node-id="YUCecLk7GLK0S1t4jMeX0F">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="4TXHxvAF9RaWDnPTEWuYLP"><path d="M14 4h6v6" data-page-node-id="TOZg7jYpiTGZpNWpThMVpP"/><path d="M20 4 10 14" data-page-node-id="6cDPM3G80yWrZrUwrtTZyc"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" data-page-node-id="oqnXB9ehg13ZlEql5H1GzM"/></svg>
           新窗口
         </a>
-        <a class="mbtn primary" id="mDownload">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/></svg>
+        <a class="mbtn primary" id="mDownload" data-page-node-id="EWqgFy3rTNIXgydZUqUjFq">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="S7H6AMuOwHbCPDKCkI4fJ2"><path d="M12 3v12" data-page-node-id="WH5NdPf5SPw3vWijz0NSWk"/><path d="m7 11 5 5 5-5" data-page-node-id="jJ2eF7VyMYdfY5LeNuWr0b"/><path d="M4 20h16" data-page-node-id="nwkZenS6bzAPLqDau2PVtM"/></svg>
           下载
         </a>
-        <button class="mclose" id="mClose" aria-label="关闭">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        <button class="mclose" id="mClose" aria-label="关闭" data-page-node-id="5Bo6HYv83yJkHVvYepsKLX">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-page-node-id="pabqM0852To1kKNlFaufuE"><path d="M6 6l12 12M18 6 6 18" data-page-node-id="HF4ChagA9Cp8cF0e1N2SB5"/></svg>
         </button>
       </div>
     </div>
-    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-body" id="modalBody" data-page-node-id="IjRLz7PDqApvXokJo4uB6A"></div>
   </div>
 </div>
 
-<div class="toast" id="toast">
-  <span class="tick"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4.5 4.5L19 7"/></svg></span>
-  <span id="toastText">开始下载</span>
+<div class="toast" id="toast" data-page-node-id="lanSGnN9Wc7yrgQivC9pON">
+  <span class="tick" data-page-node-id="XguNKE3q14ejmuMQE6s8Qx"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="zCFKiaxHw0IuLE5XRnLoJF"><path d="m5 13 4.5 4.5L19 7" data-page-node-id="qSEElwNsgDqope8ygDowqo"/></svg></span>
+  <span id="toastText" data-page-node-id="j09TftiQoTYP2CZNw6VEvA">开始下载</span>
 </div>
 
 <script>
@@ -525,22 +630,22 @@ const ITEMS = [
     download: '量子隧穿的数理本质与前沿挑战_研究报告.pdf'
   },
   {
-    id: 'intro', kind: 'video', tag: 'VIDEO',
-    title: '介绍视频 · 完整讲解',
-    desc: '从经典禁区到量子隧穿的完整物理图像与实验演示',
-    src: 'intro.mp4',
-    poster: 'thumb/intro.jpg',
-    meta: ['21.2 MB', 'MP4 · H.264'],
-    download: '量子隧穿的数理本质与前沿挑战_介绍视频.mp4'
-  },
-  {
     id: 'micro', kind: 'video', tag: 'SHORT',
-    title: '微视频 · 概念速览',
-    desc: '精简版：三分钟抓住隧穿效应的核心与量级',
+    title: '微视频作品',
+    desc: '第十二届全国大学生物理实验竞赛（创新）命题类作品 · 微视频',
     src: 'micro.mp4',
     poster: 'thumb/micro.jpg',
     meta: ['21.6 MB', 'MP4 · H.264'],
     download: '量子隧穿的数理本质与前沿挑战_微视频.mp4'
+  },
+  {
+    id: 'intro', kind: 'video', tag: 'VIDEO',
+    title: '介绍视频 · 完整讲解',
+    desc: '对三分钟微视频以及制作过程的介绍',
+    src: 'intro.mp4',
+    poster: 'thumb/intro.jpg',
+    meta: ['21.2 MB', 'MP4 · H.264'],
+    download: '量子隧穿的数理本质与前沿挑战_介绍视频.mp4'
   }
 ];
 
@@ -773,6 +878,8 @@ setTimeout(() => document.body.classList.remove('boot'), 1600);
   if(view === 'contact' || view === 'overview') setView(view);
   const open = q.get('open');
   if(open && ITEMS.some(i => i.id === open)) setTimeout(() => openPreview(open), 320);
+  const sc = parseInt(q.get('scroll') || '0', 10);
+  if(sc > 0) setTimeout(() => window.scrollTo(0, sc), 60);
 })();
 </script>
 </body>
