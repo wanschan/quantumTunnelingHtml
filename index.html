@@ -403,16 +403,58 @@
   .mclose:hover{ background:var(--surface-hover); color:var(--text); transform:rotate(90deg); }
   .mclose svg{ width:15px; height:15px; }
   .modal-body{ flex:1 1 auto; position:relative; background:var(--surface); overflow:hidden; }
-  .modal-body iframe, .modal-body video{ width:100%; height:100%; border:0; display:block; }
+  .modal-body video{ width:100%; height:100%; border:0; display:block; }
   .modal-body video{ object-fit:contain; background:#000; }
-  .pdf-hint{
-    position:absolute; left:50%; bottom:12px; transform:translateX(-50%); z-index:3;
-    display:flex; align-items:center; gap:8px; padding:7px 12px; border-radius:999px;
-    font-size:10.5px; color:var(--text-2); background:var(--scrim);
+
+  /* ---------- pdf viewer (pdf.js canvas) ---------- */
+  .pdf-view{ position:absolute; inset:0; display:flex; flex-direction:column; background:var(--surface); }
+  .pdf-bar{
+    flex:0 0 auto; display:flex; align-items:center; gap:6px; padding:8px 10px;
+    border-bottom:1px solid var(--stroke); background:var(--surface);
+  }
+  .pdf-bar .grow{ flex:1; }
+  .pdf-btn{
+    height:30px; min-width:30px; padding:0 9px; border-radius:8px; cursor:pointer;
+    display:inline-flex; align-items:center; justify-content:center;
+    font-family:inherit; font-size:12px; font-weight:650; letter-spacing:.2px; color:var(--text-2);
+    background:transparent; border:1px solid var(--stroke-strong);
+    transition:background .22s, color .22s, transform .22s var(--ease);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .pdf-btn:hover:not(:disabled){ background:var(--surface-hover); color:var(--text); }
+  .pdf-btn:active:not(:disabled){ transform:scale(.95); }
+  .pdf-btn:disabled{ opacity:.32; cursor:default; }
+  .pdf-count{
+    font-size:11px; color:var(--text); font-variant-numeric:tabular-nums;
+    min-width:58px; text-align:center; letter-spacing:.3px;
+  }
+  .pdf-stage{
+    position:relative; flex:1 1 auto; overflow:auto; -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding:10px; display:flex; justify-content:center; align-items:flex-start;
+    background:var(--surface);
+  }
+  .pdf-stage canvas{
+    display:block; margin:0 auto; border-radius:6px; background:#fff;
+    box-shadow:0 12px 34px -14px rgba(0,0,0,.55);
+  }
+  .pdf-loading{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    display:flex; align-items:center; gap:9px; font-size:11.5px; color:var(--text-2);
+    padding:10px 14px; border-radius:999px; background:var(--scrim);
     border:1px solid var(--stroke-strong); backdrop-filter:blur(10px); white-space:nowrap;
   }
-  .pdf-hint a{ color:var(--text); text-decoration:none; font-weight:650; border-bottom:1px solid var(--stroke-strong); }
-  .pdf-hint a:hover{ opacity:.7; }
+  .pdf-loading::before{
+    content:''; width:13px; height:13px; border-radius:50%; flex:0 0 auto;
+    border:2px solid var(--stroke-strong); border-top-color:var(--text);
+    animation:pdfspin .8s linear infinite;
+  }
+  .pdf-loading.is-error::before{ display:none; }
+  .pdf-loading.is-error{
+    white-space:normal; max-width:82%; text-align:center; line-height:1.7;
+    border-radius:14px; padding:14px 16px; font-size:12px;
+  }
+  @keyframes pdfspin{ to{ transform:rotate(360deg); } }
 
   /* ---------- toast ---------- */
   .toast{
@@ -503,7 +545,7 @@
         <span id="sectionCount" data-page-node-id="rMSYIc1UDBp9pJPFletfzF">共 4 项</span>
       </div>
       <div class="list" id="list" data-page-node-id="zIZLoAJmsas6o6VOM9skNd"></div>
-      <p class="foot-note" data-page-node-id="GcatrADmOnp8M4k5nNWwzO">点击卡片标题可快速预览 · 支持在线播放与下载原文件</p>
+      <p class="foot-note" data-page-node-id="GcatrADmOnp8M4k5nNWwzO">点击卡片标题可快速预览 · 仅支持在线浏览</p>
     </section>
 
     <!-- view: contact -->
@@ -512,7 +554,7 @@
         <h2 data-page-node-id="cWcB1lDUQRaAXsHHGDT0wm">联系我们</h2>
         <span data-page-node-id="MleHuxnWSM0s1LBXEIs2kV">Contact</span>
       </div>
-      <p class="contact-intro" data-page-node-id="s9rUQt9flZYNT0Lpt23XN1">如需获取原始素材或就内容进行指正、交流，欢迎通过以下方式联系我们。</p>
+      <p class="contact-intro" data-page-node-id="s9rUQt9flZYNT0Lpt23XN1">如需获取原始素材、实验数据或就内容进行交流，欢迎通过以下方式联系项目组。</p>
 
       <div class="info-card" data-page-node-id="fKVrd9dPYOVfH0ZefQMCve">
         <a class="info-row" href="mailto:wanschan@outlook.com" data-page-node-id="wpie5TQSmwXz9C9axuHdB2">
@@ -543,10 +585,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="alODZFTlyn3Q5njxOV9fTB"><path d="M4 6.5h16v11H4z" opacity=".5" data-page-node-id="vVjkxGAIEsrkErEScF787B"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4" data-page-node-id="FMczBHCmEUslIJ782hx2Ya"/></svg>
           发送邮件
         </a>
-        <a class="btn btn-ghost" href="report.pdf" download="量子隧穿的数理本质与前沿挑战_研究报告.pdf" data-page-node-id="IUChrauS6024do7cWdtKgw">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="1F3XfrnlyQH7OkeIA2s2nI"><path d="M12 3.5v11" data-page-node-id="qMaCT5WBthejPWXudhIEyj"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5" data-page-node-id="EMYPmm4k2AcvtcAFF5HGLH"/><path d="M4.5 20h15" data-page-node-id="9hWePpqa1AspDejwITvFHJ"/></svg>
-          下载报告
-        </a>
+        
       </div>
 
       <div class="contact-foot" data-page-node-id="1AQRfqprk3WxcyY1x9gpxF">
@@ -586,14 +625,8 @@
         <p id="mSub" data-page-node-id="5MBNgsZVBHUlkUjTiv8Vpw"></p>
       </div>
       <div class="mh-actions" data-page-node-id="uffF6TFmnnSZWI1vS6XTRu">
-        <a class="mbtn" id="mOpen" target="_blank" rel="noopener" data-page-node-id="YUCecLk7GLK0S1t4jMeX0F">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="4TXHxvAF9RaWDnPTEWuYLP"><path d="M14 4h6v6" data-page-node-id="TOZg7jYpiTGZpNWpThMVpP"/><path d="M20 4 10 14" data-page-node-id="6cDPM3G80yWrZrUwrtTZyc"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" data-page-node-id="oqnXB9ehg13ZlEql5H1GzM"/></svg>
-          新窗口
-        </a>
-        <a class="mbtn primary" id="mDownload" data-page-node-id="EWqgFy3rTNIXgydZUqUjFq">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="S7H6AMuOwHbCPDKCkI4fJ2"><path d="M12 3v12" data-page-node-id="WH5NdPf5SPw3vWijz0NSWk"/><path d="m7 11 5 5 5-5" data-page-node-id="jJ2eF7VyMYdfY5LeNuWr0b"/><path d="M4 20h16" data-page-node-id="nwkZenS6bzAPLqDau2PVtM"/></svg>
-          下载
-        </a>
+        
+        
         <button class="mclose" id="mClose" aria-label="关闭" data-page-node-id="5Bo6HYv83yJkHVvYepsKLX">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" data-page-node-id="pabqM0852To1kKNlFaufuE"><path d="M6 6l12 12M18 6 6 18" data-page-node-id="HF4ChagA9Cp8cF0e1N2SB5"/></svg>
         </button>
@@ -605,7 +638,7 @@
 
 <div class="toast" id="toast" data-page-node-id="lanSGnN9Wc7yrgQivC9pON">
   <span class="tick" data-page-node-id="XguNKE3q14ejmuMQE6s8Qx"><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="zCFKiaxHw0IuLE5XRnLoJF"><path d="m5 13 4.5 4.5L19 7" data-page-node-id="qSEElwNsgDqope8ygDowqo"/></svg></span>
-  <span id="toastText" data-page-node-id="j09TftiQoTYP2CZNw6VEvA">开始下载</span>
+  <span id="toastText" data-page-node-id="j09TftiQoTYP2CZNw6VEvA">已完成</span>
 </div>
 
 <script>
@@ -617,8 +650,7 @@ const ITEMS = [
     desc: '第十二届全国大学生物理实验竞赛（创新）命题类作品 · 39 页幻灯片',
     src: 'slides.pdf',
     thumb: 'thumb/slides.png',
-    meta: ['39 页', '8.9 MB', '2026.09'],
-    download: '量子隧穿的数理本质与前沿挑战_介绍PPT.pdf'
+    meta: ['39 页', '8.9 MB', '2026.09']
   },
   {
     id: 'report', kind: 'pdf', tag: 'PDF',
@@ -626,8 +658,7 @@ const ITEMS = [
     desc: '波函数推导、WKB 近似、透射系数与前沿挑战的系统论述',
     src: 'report.pdf',
     thumb: 'thumb/report.png',
-    meta: ['28 页', '1.7 MB', '2026.09'],
-    download: '量子隧穿的数理本质与前沿挑战_研究报告.pdf'
+    meta: ['28 页', '1.7 MB', '2026.09']
   },
   {
     id: 'micro', kind: 'video', tag: 'SHORT',
@@ -635,17 +666,7 @@ const ITEMS = [
     desc: '第十二届全国大学生物理实验竞赛（创新）命题类作品 · 微视频',
     src: 'micro.mp4',
     poster: 'thumb/micro.jpg',
-    meta: ['21.6 MB', 'MP4 · H.264'],
-    download: '量子隧穿的数理本质与前沿挑战_微视频.mp4'
-  },
-  {
-    id: 'intro', kind: 'video', tag: 'VIDEO',
-    title: '介绍视频 · 完整讲解',
-    desc: '对三分钟微视频以及制作过程的介绍',
-    src: 'intro.mp4',
-    poster: 'thumb/intro.jpg',
-    meta: ['21.2 MB', 'MP4 · H.264'],
-    download: '量子隧穿的数理本质与前沿挑战_介绍视频.mp4'
+    meta: ['21.6 MB', 'MP4 · H.264']
   }
 ];
 
@@ -657,7 +678,6 @@ const MODAL_BODY = document.getElementById('modalBody');
 /* ============ icons ============ */
 const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5.2v13.6L19 12z"/></svg>';
 const ICON_EYE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="2.8"/></svg>';
-const ICON_DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v11"/><path d="m7.5 10.5 4.5 4.5 4.5-4.5"/><path d="M4.5 20h15"/></svg>';
 
 /* ============ helpers ============ */
 const el = (html) => {
@@ -686,7 +706,6 @@ function buildDocCard(it, i){
         <div class="card-meta">${it.meta.map(m=>`<span>${m}</span>`).join('<i>·</i>')}</div>
         <div class="actions">
           <button class="btn btn-primary" data-open>${ICON_EYE}预览</button>
-          <a class="btn btn-ghost" href="${it.src}" download="${it.download}">${ICON_DL}下载</a>
         </div>
       </div>
     </article>
@@ -709,7 +728,6 @@ function buildVideoCard(it, i){
         <div class="card-meta">${it.meta.map(m=>`<span>${m}</span>`).join('<i>·</i>')}</div>
         <div class="actions">
           <button class="btn btn-primary" data-open>${ICON_PLAY}播放</button>
-          <a class="btn btn-ghost" href="${it.src}" download="${it.download}">${ICON_DL}下载</a>
         </div>
       </div>
     </article>
@@ -746,6 +764,163 @@ function probeDuration(posterEl){
   }));
 }
 
+/* ============ pdf viewer（pdf.js 渲染到 canvas） ============ */
+const PDFJS_BASE = 'vendor/pdfjs/';
+let pdfjsLoading = null;
+
+function loadPdfJs(){
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(pdfjsLoading) return pdfjsLoading;
+  pdfjsLoading = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = PDFJS_BASE + 'pdf.min.js';
+    s.onload = () => {
+      try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_BASE + 'pdf.worker.min.js'; }catch(e){}
+      resolve(window.pdfjsLib);
+    };
+    s.onerror = () => reject(new Error('pdf.js 加载失败'));
+    document.head.appendChild(s);
+  });
+  return pdfjsLoading;
+}
+
+const PDFV = { doc:null, num:1, zoom:1, task:null, host:null, paint:null };
+
+function pdfShell(){
+  return el(`
+    <div class="pdf-view">
+      <div class="pdf-bar">
+        <button class="pdf-btn" data-pdf="prev" aria-label="上一页">‹</button>
+        <span class="pdf-count" data-pdf="count">– / –</span>
+        <button class="pdf-btn" data-pdf="next" aria-label="下一页">›</button>
+        <span class="grow"></span>
+        <button class="pdf-btn" data-pdf="out" aria-label="缩小">−</button>
+        <button class="pdf-btn" data-pdf="fit" aria-label="适应宽度">适应</button>
+        <button class="pdf-btn" data-pdf="in" aria-label="放大">+</button>
+      </div>
+      <div class="pdf-stage" data-pdf="stage">
+        <canvas data-pdf="canvas"></canvas>
+        <div class="pdf-loading" data-pdf="tip">正在解析 PDF…</div>
+      </div>
+    </div>
+  `);
+}
+
+async function mountPdf(it){
+  const shell = pdfShell();
+  MODAL_BODY.appendChild(shell);
+
+  const stage  = shell.querySelector('[data-pdf="stage"]');
+  const canvas = shell.querySelector('[data-pdf="canvas"]');
+  const tip    = shell.querySelector('[data-pdf="tip"]');
+  const countEl= shell.querySelector('[data-pdf="count"]');
+  const prevBtn= shell.querySelector('[data-pdf="prev"]');
+  const nextBtn= shell.querySelector('[data-pdf="next"]');
+
+  PDFV.zoom = 1;
+  PDFV.num = 1;
+
+  let doc;
+  try{
+    const pdfjs = await loadPdfJs();
+    doc = await pdfjs.getDocument({
+      url: it.src,
+      standardFontDataUrl: PDFJS_BASE + 'standard_fonts/'
+    }).promise;
+  }catch(err){
+    canvas.style.display = 'none';
+    tip.classList.add('is-error');
+    tip.textContent = 'PDF 读取失败：浏览器禁止 file:// 页面直接读取本地文件。请用 preview.bat（或任意静态服务器）打开，部署到网上后手机也能正常预览';
+    return;
+  }
+  if(!shell.isConnected) return;
+
+  PDFV.doc = doc;
+  PDFV.host = shell;
+
+  const paint = async () => {
+    if(PDFV.doc !== doc || PDFV.host !== shell) return;
+    if(PDFV.task){ try{ PDFV.task.cancel(); }catch(e){} PDFV.task = null; }
+
+    let page;
+    try{ page = await doc.getPage(PDFV.num); }catch(e){ return; }
+    if(PDFV.doc !== doc) return;
+
+    const base  = page.getViewport({ scale: 1 });
+    const avail = Math.max(160, stage.clientWidth - 20);
+    const scale = (avail / base.width) * PDFV.zoom;
+    const vp    = page.getViewport({ scale });
+    const dpr   = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvas.width  = Math.round(vp.width  * dpr);
+    canvas.height = Math.round(vp.height * dpr);
+    canvas.style.width  = vp.width  + 'px';
+    canvas.style.height = vp.height + 'px';
+
+    const ctx  = canvas.getContext('2d', { alpha:false });
+    const task = page.render({
+      canvasContext: ctx,
+      viewport: vp,
+      transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null
+    });
+    PDFV.task = task;
+    try{ await task.promise; }catch(e){ return; }
+    if(PDFV.doc !== doc) return;
+
+    tip.style.display = 'none';
+    countEl.textContent = PDFV.num + ' / ' + doc.numPages;
+    prevBtn.disabled = PDFV.num <= 1;
+    nextBtn.disabled = PDFV.num >= doc.numPages;
+  };
+  PDFV.paint = paint;
+  await paint();
+
+  const go = (n) => {
+    const target = Math.min(Math.max(1, n), doc.numPages);
+    if(target === PDFV.num) return;
+    PDFV.num = target;
+    paint();
+  };
+
+  shell.addEventListener('click', e => {
+    const b = e.target.closest('[data-pdf]');
+    if(!b) return;
+    const act = b.getAttribute('data-pdf');
+    if(act === 'prev') go(PDFV.num - 1);
+    else if(act === 'next') go(PDFV.num + 1);
+    else if(act === 'in'){ PDFV.zoom = Math.min(3, PDFV.zoom + 0.25); paint(); }
+    else if(act === 'out'){ PDFV.zoom = Math.max(1, PDFV.zoom - 0.25); paint(); }
+    else if(act === 'fit'){ PDFV.zoom = 1; paint(); }
+  });
+
+  /* 手机左右滑动翻页 */
+  let sx = 0, sy = 0;
+  stage.addEventListener('touchstart', e => {
+    const t = e.touches[0]; sx = t.clientX; sy = t.clientY;
+  }, { passive:true });
+  stage.addEventListener('touchend', e => {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if(Math.abs(dx) > 46 && Math.abs(dx) > Math.abs(dy) * 1.4){
+      go(PDFV.num + (dx < 0 ? 1 : -1));
+    }
+  }, { passive:true });
+
+  /* 尺寸变化时重排（旋转屏幕 / 桌面窗口缩放） */
+  let rt;
+  window.addEventListener('resize', () => {
+    if(PDFV.doc !== doc) return;
+    clearTimeout(rt);
+    rt = setTimeout(() => paint(), 180);
+  });
+}
+
+function destroyPdf(){
+  if(PDFV.task){ try{ PDFV.task.cancel(); }catch(e){} PDFV.task = null; }
+  if(PDFV.doc){ try{ PDFV.doc.destroy(); }catch(e){} }
+  PDFV.doc = null; PDFV.host = null; PDFV.paint = null; PDFV.num = 1; PDFV.zoom = 1;
+}
+
 /* ============ modal ============ */
 function openPreview(id){
   const it = ITEMS.find(x => x.id === id);
@@ -753,26 +928,19 @@ function openPreview(id){
 
   document.getElementById('mTitle').textContent = it.title;
   document.getElementById('mSub').textContent = it.meta.join(' · ');
-  const dl = document.getElementById('mDownload');
-  dl.href = it.src; dl.setAttribute('download', it.download);
-  document.getElementById('mOpen').href = it.src;
 
   MODAL_BODY.innerHTML = '';
+  destroyPdf();
   if(it.kind === 'pdf'){
-    const frame = document.createElement('iframe');
-    frame.src = it.src + '#view=FitH&navpanes=0';
-    frame.title = it.title;
-    MODAL_BODY.appendChild(frame);
-    MODAL_BODY.appendChild(el(`
-      <div class="pdf-hint">
-        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
-        <span>若预览空白，请<a href="${it.src}" target="_blank" rel="noopener">新窗口打开</a>或使用本地服务</span>
-      </div>
-    `));
+    /* 一律用 pdf.js 渲染成 canvas：手机浏览器没有内置 PDF 阅读器，iframe 会空白或触发下载 */
+    mountPdf(it);
   }else{
     const video = document.createElement('video');
     video.src = it.src;
     video.controls = true;
+    video.controlsList = 'nodownload noremoteplayback';
+    video.disablePictureInPicture = true;
+    video.addEventListener('contextmenu', ev => ev.preventDefault());
     video.autoplay = true;
     video.playsInline = true;
     video.setAttribute('preload','metadata');
@@ -793,13 +961,22 @@ function closeModal(){
   setTimeout(() => {
     const v = MODAL_BODY.querySelector('video');
     if(v){ v.pause(); v.removeAttribute('src'); v.load(); }
+    destroyPdf();
     MODAL_BODY.innerHTML = '';
   }, 320);
 }
 
 document.getElementById('mClose').addEventListener('click', closeModal);
 OVERLAY.addEventListener('click', e => { if(e.target === OVERLAY) closeModal(); });
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){ closeModal(); return; }
+  if(!OVERLAY.classList.contains('open') || !PDFV.doc || !PDFV.paint) return;
+  if(e.key === 'ArrowRight' || e.key === 'PageDown'){
+    if(PDFV.num < PDFV.doc.numPages){ PDFV.num++; PDFV.paint(); }
+  }else if(e.key === 'ArrowLeft' || e.key === 'PageUp'){
+    if(PDFV.num > 1){ PDFV.num--; PDFV.paint(); }
+  }
+});
 
 /* ============ list interactions ============ */
 LIST.addEventListener('click', e => {
@@ -842,10 +1019,6 @@ function toast(msg){
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 1900);
 }
-document.addEventListener('click', e => {
-  const a = e.target.closest('a[download]');
-  if(a) toast('开始下载 · ' + a.getAttribute('download'));
-});
 
 /* ============ theme ============ */
 const SUN = '<path d="M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M18.4 5.6l1.4-1.4M4.2 19.8l1.4-1.4"/><circle cx="12" cy="12" r="4"/>';
