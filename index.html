@@ -823,10 +823,18 @@ async function mountPdf(it){
   let doc;
   try{
     const pdfjs = await loadPdfJs();
-    doc = await pdfjs.getDocument({
+    const task = pdfjs.getDocument({
       url: it.src,
       standardFontDataUrl: PDFJS_BASE + 'standard_fonts/'
-    }).promise;
+    });
+    /* 大文件下载较慢时给出百分比，避免长时间只有「正在解析」 */
+    task.onProgress = ({ loaded, total }) => {
+      if(!total || !shell.isConnected) return;
+      const pct = Math.min(99, Math.round(loaded / total * 100));
+      tip.textContent = '正在加载 PDF… ' + pct + '%';
+    };
+    doc = await task.promise;
+    tip.textContent = '正在解析 PDF…';
   }catch(err){
     canvas.style.display = 'none';
     tip.classList.add('is-error');
