@@ -801,6 +801,37 @@ function loadPdfJs(){
 
 const PDFV = { doc:null, num:1, zoom:1, task:null, host:null, paint:null };
 
+/* 先整份取回再交给 pdf.js：GitHub Pages / 部分 CDN 对分段 range 请求处理不稳，
+   让 pdf.js 自己流式拉取会卡在「正在加载 99%」永不完成 */
+const pdfCache = new Map();
+async function fetchPdfBytes(url, onPct){
+  if(pdfCache.has(url)) return pdfCache.get(url);
+  const res = await fetch(url, { cache:'force-cache' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const total = Number(res.headers.get('content-length')) || 0;
+  let buf;
+  if(res.body && res.body.getReader){
+    const reader = res.body.getReader();
+    const chunks = [];
+    let loaded = 0;
+    for(;;){
+      const { done, value } = await reader.read();
+      if(done) break;
+      chunks.push(value);
+      loaded += value.length;
+      if(onPct && total) onPct(Math.min(99, Math.round(loaded / total * 100)));
+    }
+    const all = new Uint8Array(loaded);
+    let off = 0;
+    for(const c of chunks){ all.set(c, off); off += c.length; }
+    buf = all.buffer;
+  }else{
+    buf = await res.arrayBuffer();
+  }
+  pdfCache.set(url, buf);
+  return buf;
+}
+
 function pdfShell(){
   return el(`
     <div class="pdf-view">
@@ -838,22 +869,23 @@ async function mountPdf(it){
   let doc;
   try{
     const pdfjs = await loadPdfJs();
+    tip.textContent = '正在加载 PDF… 0%';
+    const bytes = await fetchPdfBytes(it.src, (pct) => {
+      if(shell.isConnected) tip.textContent = '正在加载 PDF… ' + pct + '%';
+    });
+    if(!shell.isConnected) return;
+    tip.textContent = '正在解析 PDF…';
     const task = pdfjs.getDocument({
-      url: it.src,
+      data: bytes.slice(0),
       standardFontDataUrl: PDFJS_BASE + 'standard_fonts/'
     });
-    /* 大文件下载较慢时给出百分比，避免长时间只有「正在解析」 */
-    task.onProgress = ({ loaded, total }) => {
-      if(!total || !shell.isConnected) return;
-      const pct = Math.min(99, Math.round(loaded / total * 100));
-      tip.textContent = '正在加载 PDF… ' + pct + '%';
-    };
     doc = await task.promise;
-    tip.textContent = '正在解析 PDF…';
   }catch(err){
     canvas.style.display = 'none';
     tip.classList.add('is-error');
-    tip.textContent = 'PDF 读取失败：浏览器禁止 file:// 页面直接读取本地文件。请用 preview.bat（或任意静态服务器）打开，部署到网上后手机也能正常预览';
+    tip.textContent = location.protocol === 'file:'
+      ? 'PDF 读取失败：浏览器禁止 file:// 页面直接读取本地文件。请用 preview.bat（或任意静态服务器）打开，部署到网上后手机也能正常预览'
+      : 'PDF 读取失败：网络异常或文件缺失（' + (err && err.message ? err.message : '未知错误') + '），请刷新重试';
     return;
   }
   if(!shell.isConnected) return;
