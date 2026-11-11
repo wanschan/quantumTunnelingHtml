@@ -789,9 +789,19 @@ function loadPdfJs(){
   pdfjsLoading = new Promise((resolve, reject) => {
     const s = document.createElement('script');
     s.src = PDFJS_BASE + 'pdf.min.js';
-    s.onload = () => {
-      try{ window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_BASE + 'pdf.worker.min.js'; }catch(e){}
-      resolve(window.pdfjsLib);
+    s.onload = async () => {
+      const lib = window.pdfjsLib;
+      try{
+        /* worker 走 blob URL：部分 CDN / 代理环境下 new Worker(同源地址)
+           的请求会一直挂着不返回，PDF 就永远停在「正在解析」 */
+        const res = await fetch(PDFJS_BASE + 'pdf.worker.min.js', { cache:'force-cache' });
+        if(!res.ok) throw new Error('worker ' + res.status);
+        const code = await res.text();
+        lib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([code], { type:'application/javascript' }));
+      }catch(e){
+        try{ lib.GlobalWorkerOptions.workerSrc = PDFJS_BASE + 'pdf.worker.min.js'; }catch(e2){}
+      }
+      resolve(lib);
     };
     s.onerror = () => reject(new Error('pdf.js 加载失败'));
     document.head.appendChild(s);
@@ -868,6 +878,7 @@ async function mountPdf(it){
 
   let doc;
   try{
+    tip.textContent = '正在准备阅读器…';
     const pdfjs = await loadPdfJs();
     tip.textContent = '正在加载 PDF… 0%';
     const bytes = await fetchPdfBytes(it.src, (pct) => {
