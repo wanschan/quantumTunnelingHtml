@@ -18,6 +18,7 @@
     --screen-bg:#0b0b0c;
     --surface:rgba(255,255,255,.045);
     --surface-hover:rgba(255,255,255,.08);
+    --label-bg:rgba(255,255,255,.055);
     --stroke:rgba(255,255,255,.09);
     --stroke-strong:rgba(255,255,255,.18);
     --text:#f4f4f5;
@@ -45,6 +46,7 @@
     --screen-bg:#ffffff;
     --surface:rgba(9,9,11,.045);
     --surface-hover:rgba(9,9,11,.075);
+    --label-bg:rgba(9,9,11,.042);
     --stroke:rgba(9,9,11,.095);
     --stroke-strong:rgba(9,9,11,.20);
     --text:#0a0a0b;
@@ -268,6 +270,11 @@
     transition:background .25s;
   }
   .info-row:last-child{ border-bottom:0; }
+  .info-label{
+    padding:15px 16px 9px; font-size:9.5px; font-weight:750; letter-spacing:1.8px;
+    color:var(--text-3); border-bottom:1px solid var(--stroke); background:var(--label-bg);
+  }
+  .info-label:not(:first-child){ padding-top:18px; }
   a.info-row:hover{ background:var(--surface-hover); }
   .info-ico{
     width:30px; height:30px; flex:0 0 auto; border-radius:9px; display:grid; place-items:center;
@@ -554,9 +561,25 @@
         <h2 data-page-node-id="cWcB1lDUQRaAXsHHGDT0wm">联系我们</h2>
         <span data-page-node-id="MleHuxnWSM0s1LBXEIs2kV">Contact</span>
       </div>
-      <p class="contact-intro" data-page-node-id="s9rUQt9flZYNT0Lpt23XN1">如需获取原始素材、实验数据或就内容进行交流，欢迎通过以下方式联系项目组。</p>
+      <p class="contact-intro" data-page-node-id="s9rUQt9flZYNT0Lpt23XN1">如需获取原始素材或就内容提出修改建议，欢迎通过以下方式联系我们</p>
 
       <div class="info-card" data-page-node-id="fKVrd9dPYOVfH0ZefQMCve">
+        <div class="info-label" data-page-node-id="infoLabelTeacher">指导教师</div>
+        <a class="info-row" href="mailto:253424374@qq.com" data-page-node-id="infoRowTeacher1">
+          <div class="info-ico" data-page-node-id="infoIcoTeacher1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".5"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+          </div>
+          <div class="info-text" data-page-node-id="infoTextTeacher1"><b data-page-node-id="infoMailTeacher1">253424374@qq.com</b><span data-page-node-id="infoRoleTeacher1">教师一</span></div>
+          <span class="info-arrow" data-page-node-id="infoArrowTeacher1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span>
+        </a>
+        <a class="info-row" href="mailto:3029389766@qq.com" data-page-node-id="infoRowTeacher2">
+          <div class="info-ico" data-page-node-id="infoIcoTeacher2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16v11H4z" opacity=".5"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4"/></svg>
+          </div>
+          <div class="info-text" data-page-node-id="infoTextTeacher2"><b data-page-node-id="infoMailTeacher2">3029389766@qq.com</b><span data-page-node-id="infoRoleTeacher2">教师二</span></div>
+          <span class="info-arrow" data-page-node-id="infoArrowTeacher2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg></span>
+        </a>
+        <div class="info-label" data-page-node-id="infoLabelStudent">学生成员</div>
         <a class="info-row" href="mailto:wanschan@outlook.com" data-page-node-id="wpie5TQSmwXz9C9axuHdB2">
           <div class="info-ico" data-page-node-id="q68IBqlcT5lBTUNpAkzyBA">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="Xqx0dskqthTsdxyVxToA3l"><path d="M4 6.5h16v11H4z" opacity=".5" data-page-node-id="cBSiJE1CARXM3EJTQCrVbQ"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4" data-page-node-id="5WWy7xPGwZi6hufQD2Qc0r"/></svg>
@@ -581,7 +604,7 @@
       </div>
 
       <div class="contact-cta" data-page-node-id="NmkHrq1HDAtfEgNr7vsLDF">
-        <a class="btn btn-primary" href="mailto:wanschan@outlook.com,2298004979@qq.com,457376179@qq.com" data-page-node-id="Cw4oQo2wkcwhoS3iL15AyC">
+        <a class="btn btn-primary" href="mailto:253424374@qq.com,3029389766@qq.com,wanschan@outlook.com,2298004979@qq.com,457376179@qq.com" data-page-node-id="Cw4oQo2wkcwhoS3iL15AyC">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-page-node-id="alODZFTlyn3Q5njxOV9fTB"><path d="M4 6.5h16v11H4z" opacity=".5" data-page-node-id="vVjkxGAIEsrkErEScF787B"/><path d="m4.6 7.4 7.4 5.4 7.4-5.4" data-page-node-id="FMczBHCmEUslIJ782hx2Ya"/></svg>
           发送邮件
         </a>
@@ -644,14 +667,6 @@
 <script>
 /* ============ data ============ */
 const ITEMS = [
-  {
-    id: 'slides', kind: 'pdf', tag: 'PDF',
-    title: '量子隧穿的数理本质与前沿挑战 · 介绍 PPT',
-    desc: '第十二届全国大学生物理实验竞赛（创新）命题类作品 · 39 页幻灯片',
-    src: 'slides.pdf',
-    thumb: 'thumb/slides.png',
-    meta: ['39 页', '8.9 MB', '2026.09']
-  },
   {
     id: 'report', kind: 'pdf', tag: 'PDF',
     title: '量子隧穿的数理本质与前沿挑战 · 研究报告',
